@@ -67,3 +67,30 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
     const isNext = totoalPostsCount > skipAmount + posts.length;
     return {posts, isNext}
 }
+
+export async function fetchThreadById(id: string){
+    connectToDB();
+
+    try{
+        const thread = await Thread.findById(id)
+        .populate({
+            path: 'author',
+            model: User,
+            select: "_id id name image"
+        })
+        .populate({
+            path: 'childern',
+            populate :[
+                {
+                    path: 'author',
+                    model: User,
+                    select: "_id id name paraentId image"
+                }
+            ]
+        }).exec();
+
+        return thread
+    } catch (error: any) {
+        throw new Error(`Error fetching thread: ${error.message}`)
+    }
+}
