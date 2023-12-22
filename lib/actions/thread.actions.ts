@@ -52,7 +52,7 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
     .limit(pageSize)
     .populate({path: 'author', model: User})
     .populate({
-        path: "childern", 
+        path: "children", 
         populate: {
             path: 'author',
             model: User,
@@ -79,7 +79,7 @@ export async function fetchThreadById(id: string){
             select: "_id id name image"
         })
         .populate({
-            path: 'childern',
+            path: 'children',
             populate :[
                 {
                     path: 'author',
@@ -94,3 +94,77 @@ export async function fetchThreadById(id: string){
         throw new Error(`Error fetching thread: ${error.message}`)
     }
 }
+
+
+
+export async function addCommentToThread(
+    threadId: string,
+    commentText: string,
+    userId: string,
+    path: string
+  ) {
+    connectToDB();
+  
+    try {
+      // Find the original thread by its ID
+      const originalThread = await Thread.findById(threadId);
+  
+      if (!originalThread) {
+        throw new Error("Thread not found");
+      }
+  
+      // Create the new comment thread
+      const commentThread = new Thread({
+        text: commentText,
+        author: userId,
+        parentId: threadId, // Set the parentId to the original thread's ID
+      });
+  
+      // Save the comment thread to the database
+      const savedCommentThread = await commentThread.save();
+  
+      // Add the comment thread's ID to the original thread's children array
+      originalThread.children.push(savedCommentThread._id);
+  
+      // Save the updated original thread to the database
+      await originalThread.save();
+  
+      revalidatePath(path);
+    } catch (err) {
+      console.error("Error while adding comment:", err);
+      throw new Error("Unable to add comment");
+    }
+  }
+// export async function addCommentToThread(
+//     threadId: string,
+//     commentText: string,
+//     userId: string,
+//     path: string,
+// ) {
+//     connectToDB();
+
+//     try{
+
+//         const originalThread = await Thread.findById(threadId)
+//         if(!originalThread){
+//             throw new Error("Thread not found")
+//         }
+//         const commentThread = new Thread({
+//             text: commentText,
+//             author: userId,
+//             parentId: threadId,
+//         })
+
+//         const saveCommentThread = await commentThread.save();
+
+//         originalThread.children.push(saveCommentThread._id)
+
+//         await originalThread.save();
+
+//         revalidatePath(path);
+
+//     }   catch(error: any){
+//         throw new Error(`Error Adding comment to thread: ${error.message}`);
+        
+//     }
+// }
