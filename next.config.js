@@ -27,8 +27,18 @@ const nextConfig = {
           protocol: "https",
           hostname: "placehold.co",
         },
+        {
+          protocol: 'https',
+          hostname: 'assets.example.com',
+          port: '',
+          pathname: '/account123/**',
+        },
       ],
     },
+
+
   };
+
+  
   
   module.exports = nextConfig;
